@@ -119,11 +119,10 @@ export const useBusinessStore = create<BusinessState>((set, get) => ({
   createProject: async (title: string, description: string, templateId?: string, prefilledSteps?: PrefilledSteps) => {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) throw new Error('Non authentifié')
-    const user = session.user
-
     const { data, error } = await supabase
       .from('business_projects')
       .insert({
+        owner_id: session.user.id,
         title,
         description,
         template_id: templateId ?? null,
