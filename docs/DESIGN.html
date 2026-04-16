@@ -1,0 +1,711 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0F0E0D;--sidebar:#141312;--surface:#1C1B18;--surface2:#242320;
+  --border:#2A2824;--border2:#353330;
+  --text1:#F0EDE6;--text2:#8A8780;--text3:#4A4845;
+  --gold:#C49A3C;--gold-soft:#E8C96A;--gold-pale:rgba(196,154,60,0.12);
+  --purple:#7B6FD4;--teal:#2DA58A;--coral:#E07070;--green:#5A9E6F;--amber:#D4854A;--blue:#5B9BD4;
+  --r-sm:6px;--r-md:10px;--r-lg:14px;--r-xl:20px;
+}
+body{font-family:-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--text1);font-size:13px}
+.shell{display:flex;height:auto;min-height:680px}
+.sidebar{width:200px;flex-shrink:0;background:var(--sidebar);border-right:1px solid var(--border);padding:20px 0;display:flex;flex-direction:column}
+.logo{padding:0 16px 20px;font-weight:600;font-size:15px;color:var(--gold);letter-spacing:-.3px}
+.logo span{color:var(--text2);font-weight:400;font-size:11px;display:block;margin-top:2px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;color:var(--text2);border-radius:0;transition:all .15s;font-size:12px;font-weight:500}
+.nav-item:hover{color:var(--text1);background:var(--surface)}
+.nav-item.active{color:var(--text1);background:var(--surface);border-right:2px solid var(--gold)}
+.nav-icon{width:16px;height:16px;opacity:.7;flex-shrink:0}
+.nav-section{font-size:10px;font-weight:600;color:var(--text3);padding:16px 16px 6px;letter-spacing:.08em;text-transform:uppercase}
+.avatar-row{padding:12px 16px;margin-top:auto;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--gold-pale);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--gold);flex-shrink:0}
+.grade{font-size:10px;color:var(--gold);font-weight:500}
+.content{flex:1;overflow:auto;background:var(--bg)}
+.screen{display:none;padding:24px}
+.screen.active{display:block}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}
+.page-title{font-size:20px;font-weight:600;color:var(--text1);letter-spacing:-.4px}
+.page-sub{font-size:12px;color:var(--text2);margin-top:3px}
+.btn-primary{background:var(--gold);color:#0F0E0D;border:none;padding:8px 16px;border-radius:var(--r-md);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:opacity .15s}
+.btn-primary:hover{opacity:.88}
+.btn-ghost{background:var(--surface2);color:var(--text1);border:1px solid var(--border2);padding:7px 14px;border-radius:var(--r-md);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.btn-ghost:hover{border-color:var(--border2);background:var(--surface)}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:20px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px}
+.metric-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px}
+.metric-label{font-size:11px;color:var(--text2);font-weight:500;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.metric-value{font-size:26px;font-weight:700;letter-spacing:-.5px;color:var(--text1)}
+.metric-delta{font-size:11px;margin-top:4px;font-weight:500}
+.delta-up{color:var(--green)}
+.delta-down{color:var(--coral)}
+.tag{display:inline-flex;align-items:center;padding:3px 9px;border-radius:var(--r-sm);font-size:11px;font-weight:500}
+.tag-purple{background:rgba(123,111,212,.18);color:#A89EE8}
+.tag-teal{background:rgba(45,165,138,.15);color:#5DCAA5}
+.tag-amber{background:rgba(212,133,74,.15);color:#E8A870}
+.tag-green{background:rgba(90,158,111,.15);color:#7DC499}
+.tag-coral{background:rgba(224,112,112,.15);color:#E89090}
+.tag-gold{background:rgba(196,154,60,.15);color:var(--gold-soft)}
+.tag-blue{background:rgba(91,155,212,.15);color:#88BBE8}
+.progress-track{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:8px}
+.progress-fill{height:100%;border-radius:2px;transition:width .5s ease}
+.spark-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin:0 1px}
+.section-title{font-size:11px;font-weight:600;color:var(--text2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.project-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:opacity .15s}
+.project-item:hover{opacity:.8}
+.project-item:last-child{border-bottom:none}
+.proj-icon{width:32px;height:32px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.proj-name{font-size:13px;font-weight:500;color:var(--text1)}
+.proj-meta{font-size:11px;color:var(--text2);margin-top:2px}
+.step-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:var(--r-sm);font-size:11px;font-weight:500;margin-right:6px;margin-bottom:6px;cursor:pointer;border:1px solid transparent;transition:all .15s}
+.step-pill.done{border-color:transparent}
+.step-pill.active{border-width:1.5px}
+.step-pill.locked{opacity:.35;cursor:not-allowed}
+.form-group{margin-bottom:16px}
+.form-label{font-size:11px;font-weight:600;color:var(--text2);letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px;display:block}
+.form-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r-md);padding:10px 14px;font-size:13px;color:var(--text1);outline:none;transition:border-color .15s;font-family:inherit}
+.form-input:focus{border-color:var(--gold)}
+.form-input::placeholder{color:var(--text3)}
+.form-textarea{resize:vertical;min-height:72px;line-height:1.6}
+.swot-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.swot-cell{border-radius:var(--r-md);padding:12px;border:1px solid}
+.swot-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.action-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.action-row:last-child{border-bottom:none}
+.check-box{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.check-box.done{background:var(--green);border-color:var(--green)}
+.check-icon{width:9px;height:9px;stroke:#fff;stroke-width:2.5;fill:none}
+.domain-node{cursor:pointer;transition:transform .2s}
+.domain-node:hover{transform-origin:center;transform:scale(1.05)}
+.tooltip{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r-md);padding:8px 12px;font-size:12px;pointer-events:none}
+.habit-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.habit-row:last-child{border-bottom:none}
+.habit-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border2);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.habit-check.done{background:var(--gold);border-color:var(--gold)}
+</style>
+
+<div class="shell">
+<h2 style="position:absolute;opacity:0;font-size:0">DestinyPlanner — Interface SaaS moderne</h2>
+
+<div class="sidebar">
+  <div class="logo">DestinyPlanner<span>Bâtissez votre destinée</span></div>
+
+  <div class="nav-section">Principal</div>
+  <div class="nav-item active" onclick="nav('dashboard')">
+    <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
+    Tableau de bord
+  </div>
+  <div class="nav-item" onclick="nav('projects')">
+    <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h8M2 12h10"/></svg>
+    Mes projets
+  </div>
+  <div class="nav-item" onclick="nav('tree')">
+    <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="3" r="2"/><circle cx="3" cy="13" r="2"/><circle cx="8" cy="13" r="2"/><circle cx="13" cy="13" r="2"/><path d="M8 5v5M8 10l-5 1M8 10l5 1"/></svg>
+    Arbre de vie
+  </div>
+  <div class="nav-item" onclick="nav('today')">
+    <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="5"/><path d="M8 5v3l2 2"/></svg>
+    Aujourd'hui
+  </div>
+  <div class="nav-item" onclick="nav('wizard')">
+    <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2l1.5 3.5L13 6.5l-2.5 2.5.5 3.5L8 11l-3 1.5.5-3.5L3 6.5l3.5-.5z"/></svg>
+    Nouveau projet
+  </div>
+
+  <div class="nav-section">Suivi</div>
+  <div class="nav-item" onclick="nav('habits')">
+    <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8a5 5 0 1010 0A5 5 0 003 8z"/><path d="M8 5v3l2 1.5"/></svg>
+    Habitudes
+  </div>
+
+  <div class="avatar-row">
+    <div class="avatar">JD</div>
+    <div>
+      <div style="font-size:12px;font-weight:500">Jean Dupont</div>
+      <div class="grade">Bâtisseur Diligent</div>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- DASHBOARD -->
+<div class="screen active" id="sc-dashboard">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Bonjour, Jean</div>
+      <div class="page-sub" style="color:var(--gold);opacity:.85">Libérer 500 entrepreneurs africains · Streak 18 jours</div>
+    </div>
+    <button class="btn-primary" onclick="nav('wizard')">+ Nouveau projet</button>
+  </div>
+
+  <div class="grid-4">
+    <div class="metric-card">
+      <div class="metric-label">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--purple)" stroke-width="1.5"><rect x="1" y="1" width="4" height="4" rx="1"/><rect x="7" y="1" width="4" height="4" rx="1"/><rect x="1" y="7" width="4" height="4" rx="1"/><rect x="7" y="7" width="4" height="4" rx="1"/></svg>
+        Projets actifs
+      </div>
+      <div class="metric-value" style="color:var(--purple)">7</div>
+      <div class="metric-delta delta-up">+2 ce mois</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--gold)" stroke-width="1.5"><path d="M6 1v2M6 9v2M1 6h2M9 6h2"/><circle cx="6" cy="6" r="3"/></svg>
+        Score attitudes
+      </div>
+      <div class="metric-value" style="color:var(--gold)">82%</div>
+      <div class="metric-delta delta-up">+6pts cette semaine</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--green)" stroke-width="1.5"><path d="M2 9l3-3 2 2 4-5"/></svg>
+        Jalons terminés
+      </div>
+      <div class="metric-value" style="color:var(--green)">24</div>
+      <div class="metric-delta delta-up">4 cette semaine</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--teal)" stroke-width="1.5"><circle cx="6" cy="6" r="5"/><path d="M6 3v3l2 2"/></svg>
+        Streak
+      </div>
+      <div class="metric-value" style="color:var(--teal)">18j</div>
+      <div class="metric-delta" style="color:var(--text2)">Record: 24j</div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="align-items:start">
+    <div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="section-title">Activité — 7 derniers jours</div>
+        <canvas id="sparkChart" height="60" style="width:100%"></canvas>
+      </div>
+      <div class="card">
+        <div class="section-title">Projets récents</div>
+        <div class="project-item" onclick="nav('wizard')">
+          <div class="proj-icon" style="background:rgba(123,111,212,.18)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#A89EE8" stroke-width="1.5"><path d="M3 13V6l5-4 5 4v7"/><rect x="6" y="9" width="4" height="4" rx="1"/></svg>
+          </div>
+          <div style="flex:1">
+            <div class="proj-name">Lancer mon SaaS</div>
+            <div class="proj-meta">Carrière · Étape 5/7 · 8 jalons</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:12px;font-weight:600;color:var(--purple)">62%</div>
+            <div class="progress-track" style="width:60px"><div class="progress-fill" style="width:62%;background:var(--purple)"></div></div>
+          </div>
+        </div>
+        <div class="project-item">
+          <div class="proj-icon" style="background:rgba(212,133,74,.15)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#E8A870" stroke-width="1.5"><path d="M2 13h12M4 13V7l4-4 4 4v6"/></svg>
+          </div>
+          <div style="flex:1">
+            <div class="proj-name">Investissement immo Paris</div>
+            <div class="proj-meta">Finances · Étape 6/7 · 5 jalons</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:12px;font-weight:600;color:var(--amber)">85%</div>
+            <div class="progress-track" style="width:60px"><div class="progress-fill" style="width:85%;background:var(--amber)"></div></div>
+          </div>
+        </div>
+        <div class="project-item">
+          <div class="proj-icon" style="background:rgba(90,158,111,.15)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#7DC499" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3 2.7-5 6-5s6 2 6 5"/></svg>
+          </div>
+          <div style="flex:1">
+            <div class="proj-name">Programme musculation 90j</div>
+            <div class="proj-meta">Santé · Étape 7/7 · 3 jalons</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:12px;font-weight:600;color:var(--green)">40%</div>
+            <div class="progress-track" style="width:60px"><div class="progress-fill" style="width:40%;background:var(--green)"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="section-title">Actions du jour</div>
+        <div class="action-row" id="a1" onclick="toggleAction('a1')">
+          <div class="check-box done"><svg class="check-icon" viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3"/></svg></div>
+          <div style="flex:1">
+            <div style="font-size:13px;text-decoration:line-through;color:var(--text2)">Appeler 3 clients potentiels</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:1px">Lancer mon SaaS</div>
+          </div>
+        </div>
+        <div class="action-row" id="a2" onclick="toggleAction('a2')">
+          <div class="check-box"><svg class="check-icon" viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3"/></svg></div>
+          <div style="flex:1">
+            <div style="font-size:13px">Rédiger le plan financier Q3</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:1px">Investissement immo</div>
+          </div>
+        </div>
+        <div class="action-row" id="a3" onclick="toggleAction('a3')" style="border-bottom:none">
+          <div class="check-box"><svg class="check-icon" viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3"/></svg></div>
+          <div style="flex:1">
+            <div style="font-size:13px">Séance musculation jambes</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:1px">Programme musculation</div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="background:var(--gold-pale);border-color:rgba(196,154,60,.2)">
+        <div style="font-size:10px;font-weight:600;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">Citation du jour</div>
+        <div style="font-size:13px;color:var(--text1);line-height:1.7;font-style:italic">"Si vous ne concevez pas votre vie, quelqu'un d'autre le fera à votre place."</div>
+        <div style="font-size:11px;color:var(--gold);margin-top:8px;font-weight:500">— Dr Myles Munroe</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ARBRE DE VIE -->
+<div class="screen" id="sc-tree">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Arbre de vie</div>
+      <div class="page-sub">Visualisez l'équilibre de votre destinée</div>
+    </div>
+    <div id="tree-tooltip" style="font-size:12px;color:var(--text2)">Cliquez sur un domaine</div>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <canvas id="treeCanvas" height="380" style="width:100%;display:block;cursor:pointer"></canvas>
+  </div>
+  <div class="grid-3" style="margin-top:12px">
+    <div class="card" style="text-align:center;padding:12px">
+      <div style="font-size:10px;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em">Domaines sains</div>
+      <div style="font-size:24px;font-weight:700;color:var(--green)">3</div>
+    </div>
+    <div class="card" style="text-align:center;padding:12px">
+      <div style="font-size:10px;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em">Desséchés</div>
+      <div style="font-size:24px;font-weight:700;color:var(--amber)">1</div>
+    </div>
+    <div class="card" style="text-align:center;padding:12px">
+      <div style="font-size:10px;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em">Surchargés</div>
+      <div style="font-size:24px;font-weight:700;color:var(--coral)">1</div>
+    </div>
+  </div>
+</div>
+
+<!-- WIZARD PROJET -->
+<div class="screen" id="sc-wizard">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Nouveau projet</div>
+      <div class="page-sub">Lancer mon agence de consulting</div>
+    </div>
+    <button class="btn-ghost">Sauvegarder brouillon</button>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;padding:12px 16px">
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <div class="step-pill done" style="background:rgba(123,111,212,.18);color:#A89EE8;border-color:rgba(123,111,212,.3)">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2,5 4,7 8,3"/></svg>
+        1 · Vision
+      </div>
+      <div class="step-pill done" style="background:rgba(91,155,212,.18);color:#88BBE8;border-color:rgba(91,155,212,.3)">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2,5 4,7 8,3"/></svg>
+        2 · Recul
+      </div>
+      <div class="step-pill active" style="background:rgba(45,165,138,.18);color:#5DCAA5;border-color:#2DA58A">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="5" r="3"/></svg>
+        3 · SWOT
+      </div>
+      <div class="step-pill locked" style="background:var(--surface2);color:var(--text2);border-color:var(--border)">4 · Coût</div>
+      <div class="step-pill locked" style="background:var(--surface2);color:var(--text2);border-color:var(--border)">5 · Budget</div>
+      <div class="step-pill locked" style="background:var(--surface2);color:var(--text2);border-color:var(--border)">6 · Ressources</div>
+      <div class="step-pill locked" style="background:var(--surface2);color:var(--text2);border-color:var(--border)">7 · Engagement</div>
+    </div>
+  </div>
+
+  <div style="background:rgba(45,165,138,.08);border:1px solid rgba(45,165,138,.2);border-radius:var(--r-lg);padding:12px 16px;margin-bottom:16px;font-size:12px;color:#5DCAA5;font-style:italic">
+    "Les plans de l'homme diligent conduisent à l'abondance, mais celui qui agit avec précipitation tombe dans la pauvreté." — Proverbes 21:5
+  </div>
+
+  <div class="card" style="margin-bottom:0">
+    <div style="font-size:14px;font-weight:600;color:var(--teal);margin-bottom:16px;display:flex;align-items:center;gap:8px">
+      <div style="width:24px;height:24px;border-radius:50%;background:rgba(45,165,138,.2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--teal)">3</div>
+      Analyse SWOT — Lancer mon agence
+    </div>
+
+    <div class="swot-grid">
+      <div class="swot-cell" style="background:rgba(90,158,111,.08);border-color:rgba(90,158,111,.25)">
+        <div class="swot-label" style="color:#7DC499">Forces</div>
+        <textarea class="form-input form-textarea" style="background:transparent;border-color:rgba(90,158,111,.2);color:var(--text1);font-size:12px" placeholder="Vos atouts pour CE projet...">Réseau solide de 200+ contacts, expertise en finance d'entreprise, 8 ans d'expérience sectorielle</textarea>
+      </div>
+      <div class="swot-cell" style="background:rgba(212,133,74,.08);border-color:rgba(212,133,74,.25)">
+        <div class="swot-label" style="color:#E8A870">Faiblesses</div>
+        <textarea class="form-input form-textarea" style="background:transparent;border-color:rgba(212,133,74,.2);color:var(--text1);font-size:12px" placeholder="Vos lacunes à combler...">Pas de site web, aucune référence client connue, seul sans associé</textarea>
+      </div>
+      <div class="swot-cell" style="background:rgba(91,155,212,.08);border-color:rgba(91,155,212,.25)">
+        <div class="swot-label" style="color:#88BBE8">Opportunités</div>
+        <textarea class="form-input form-textarea" style="background:transparent;border-color:rgba(91,155,212,.2);color:var(--text1);font-size:12px" placeholder="Fenêtres à saisir...">Marché PME sous-servi, tendance externalisation CFO, 3 clients potentiels déjà identifiés</textarea>
+      </div>
+      <div class="swot-cell" style="background:rgba(224,112,112,.08);border-color:rgba(224,112,112,.25)">
+        <div class="swot-label" style="color:#E89090">Menaces</div>
+        <textarea class="form-input form-textarea" style="background:transparent;border-color:rgba(224,112,112,.2);color:var(--text1);font-size:12px" placeholder="Risques à anticiper...">Gros cabinets concurrents, délai de paiement clients PME, conjoncture économique</textarea>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+      <button class="btn-ghost">← Étape précédente</button>
+      <div style="font-size:12px;color:var(--text2)">Étape 3 sur 7</div>
+      <button class="btn-primary">Valider l'analyse →</button>
+    </div>
+  </div>
+</div>
+
+<!-- AUJOURD'HUI -->
+<div class="screen" id="sc-today">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Aujourd'hui</div>
+      <div class="page-sub">Vendredi 11 avril 2026 · Niveau 2 — Pratique</div>
+    </div>
+    <button class="btn-primary">+ Ajouter une action</button>
+  </div>
+
+  <div class="grid-2" style="align-items:start">
+    <div>
+      <div class="card" style="margin-bottom:12px;background:var(--gold-pale);border-color:rgba(196,154,60,.2)">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:10px">Routine matinale</div>
+        <div style="font-size:13px;color:var(--text1);line-height:1.8;font-style:italic;margin-bottom:10px">"Car je connais les projets que j'ai formés pour vous, déclare l'Éternel, projets de paix et non de malheur."</div>
+        <div style="font-size:11px;color:var(--gold);font-weight:500">Jérémie 29:11</div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(196,154,60,.2)">
+          <div style="font-size:11px;color:var(--text2);margin-bottom:6px;font-weight:500">Ma déclaration du jour</div>
+          <textarea class="form-input form-textarea" style="min-height:56px;font-size:12px" placeholder="Écrivez votre déclaration...">Aujourd'hui je prends des actions concrètes vers ma liberté financière.</textarea>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">3 actions vers la destinée</div>
+        <div class="action-row" id="t1" onclick="toggleAction('t1')">
+          <div class="check-box done"><svg class="check-icon" viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3"/></svg></div>
+          <div style="flex:1">
+            <div style="font-size:13px;text-decoration:line-through;color:var(--text2)">Appeler 3 clients potentiels</div>
+            <div style="font-size:11px;color:var(--text3)">→ Lancer mon SaaS · Jalon "Valider le marché"</div>
+          </div>
+          <span class="tag tag-purple" style="font-size:10px">Carrière</span>
+        </div>
+        <div class="action-row" id="t2" onclick="toggleAction('t2')">
+          <div class="check-box"><svg class="check-icon" viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3"/></svg></div>
+          <div style="flex:1">
+            <div style="font-size:13px">Étude de marché immobilière</div>
+            <div style="font-size:11px;color:var(--text3)">→ Investissement immo · Jalon "Analyse zone"</div>
+          </div>
+          <span class="tag tag-amber" style="font-size:10px">Finances</span>
+        </div>
+        <div class="action-row" id="t3" onclick="toggleAction('t3')" style="border-bottom:none">
+          <div class="check-box"><svg class="check-icon" viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3"/></svg></div>
+          <div style="flex:1">
+            <div style="font-size:13px">Séance sport 45 min</div>
+            <div style="font-size:11px;color:var(--text3)">→ Programme musculation · Jalon "Semaine 4"</div>
+          </div>
+          <span class="tag tag-green" style="font-size:10px">Santé</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="section-title">Score d'attitudes — 7 jours</div>
+        <div style="display:flex;align-items:center;gap:20px">
+          <canvas id="donutChart" width="80" height="80"></canvas>
+          <div style="flex:1">
+            <div style="font-size:28px;font-weight:700;color:var(--gold);letter-spacing:-.5px">82%</div>
+            <div style="font-size:12px;color:var(--green);margin-top:2px">+6pts cette semaine</div>
+            <div style="display:flex;gap:3px;margin-top:10px" id="weekDots"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">Détours actifs</div>
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:8px;background:rgba(212,133,74,.08);border-radius:var(--r-md);border:1px solid rgba(212,133,74,.2)">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--amber)" stroke-width="1.5" style="flex-shrink:0;margin-top:1px"><path d="M7 1l6 11H1z"/><path d="M7 5v3M7 10v1"/></svg>
+          <div>
+            <div style="font-size:12px;font-weight:500;color:var(--text1)">Manque de temps — apparu 3×</div>
+            <div style="font-size:11px;color:var(--amber);margin-top:3px">Obstacle systémique détecté → Créer une habitude</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HABITUDES -->
+<div class="screen" id="sc-habits">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Habitudes</div>
+      <div class="page-sub">Vos attitudes dessinent votre avenir</div>
+    </div>
+    <button class="btn-primary">+ Ajouter</button>
+  </div>
+  <div class="grid-2" style="align-items:start">
+    <div class="card">
+      <div class="section-title">Check-in du jour</div>
+      <div class="habit-row" id="h1" onclick="toggleHabit('h1')">
+        <div class="habit-check done" id="hc1"><svg class="check-icon" viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3"/></svg></div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500">Prière & méditation</div>
+          <div style="font-size:11px;color:var(--text2)">Poids : 30%</div>
+        </div>
+        <span class="tag tag-gold">30 pts</span>
+      </div>
+      <div class="habit-row" id="h2" onclick="toggleHabit('h2')">
+        <div class="habit-check done" id="hc2"><svg class="check-icon" viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3"/></svg></div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500">Lecture 20 min</div>
+          <div style="font-size:11px;color:var(--text2)">Poids : 20%</div>
+        </div>
+        <span class="tag tag-gold">20 pts</span>
+      </div>
+      <div class="habit-row" id="h3" onclick="toggleHabit('h3')">
+        <div class="habit-check" id="hc3"><svg class="check-icon" viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3"/></svg></div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500">Sport</div>
+          <div style="font-size:11px;color:var(--text2)">Poids : 25%</div>
+        </div>
+        <span class="tag" style="background:var(--surface2);color:var(--text2)">25 pts</span>
+      </div>
+      <div class="habit-row" id="h4" onclick="toggleHabit('h4')" style="border-bottom:none">
+        <div class="habit-check done" id="hc4"><svg class="check-icon" viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3"/></svg></div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500">Discipline financière</div>
+          <div style="font-size:11px;color:var(--text2)">Poids : 25%</div>
+        </div>
+        <span class="tag tag-gold">25 pts</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">Tendance 30 jours</div>
+      <canvas id="habitChart" height="120" style="width:100%"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- PROJETS -->
+<div class="screen" id="sc-projects">
+  <div class="page-header">
+    <div><div class="page-title">Mes projets</div><div class="page-sub">7 projets actifs · 2 terminés</div></div>
+    <button class="btn-primary" onclick="nav('wizard')">+ Nouveau projet</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+    <span class="tag tag-purple" style="cursor:pointer;padding:5px 12px">Tous</span>
+    <span class="tag" style="cursor:pointer;padding:5px 12px;background:var(--surface2);color:var(--text2)">Carrière</span>
+    <span class="tag" style="cursor:pointer;padding:5px 12px;background:var(--surface2);color:var(--text2)">Finances</span>
+    <span class="tag" style="cursor:pointer;padding:5px 12px;background:var(--surface2);color:var(--text2)">Santé</span>
+    <span class="tag" style="cursor:pointer;padding:5px 12px;background:var(--surface2);color:var(--text2)">Foi</span>
+  </div>
+  <div style="display:grid;gap:10px">
+    <div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 16px;cursor:pointer" onclick="nav('wizard')">
+      <div style="width:36px;height:36px;border-radius:var(--r-md);background:rgba(123,111,212,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#A89EE8" stroke-width="1.5"><rect x="2" y="2" width="14" height="14" rx="3"/><path d="M6 9h6M9 6v6"/></svg>
+      </div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <span style="font-size:14px;font-weight:500">Lancer mon SaaS</span>
+          <span class="tag tag-purple" style="font-size:10px">Carrière</span>
+          <span class="tag tag-teal" style="font-size:10px">Actif</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2)">Étape 5/7 · 8 jalons · Prochain : Développer le MVP</div>
+      </div>
+      <div style="text-align:right;min-width:80px">
+        <div style="font-size:14px;font-weight:600;color:var(--purple)">62%</div>
+        <div class="progress-track"><div class="progress-fill" style="width:62%;background:var(--purple)"></div></div>
+        <div style="font-size:10px;color:var(--text2);margin-top:3px">Déc. 2026</div>
+      </div>
+    </div>
+    <div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 16px;cursor:pointer">
+      <div style="width:36px;height:36px;border-radius:var(--r-md);background:rgba(212,133,74,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#E8A870" stroke-width="1.5"><path d="M2 16h14M4 16V8l5-5 5 5v8"/></svg>
+      </div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <span style="font-size:14px;font-weight:500">Investissement immo Paris</span>
+          <span class="tag tag-amber" style="font-size:10px">Finances</span>
+          <span class="tag tag-teal" style="font-size:10px">Actif</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2)">Étape 6/7 · 5 jalons · Prochain : Signature compromis</div>
+      </div>
+      <div style="text-align:right;min-width:80px">
+        <div style="font-size:14px;font-weight:600;color:var(--amber)">85%</div>
+        <div class="progress-track"><div class="progress-fill" style="width:85%;background:var(--amber)"></div></div>
+        <div style="font-size:10px;color:var(--text2);margin-top:3px">Juin 2026</div>
+      </div>
+    </div>
+    <div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 16px;cursor:pointer">
+      <div style="width:36px;height:36px;border-radius:var(--r-md);background:rgba(90,158,111,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#7DC499" stroke-width="1.5"><circle cx="9" cy="7" r="4"/><path d="M3 17c0-3 2.7-4 6-4s6 1 6 4"/></svg>
+      </div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <span style="font-size:14px;font-weight:500">Programme musculation 90j</span>
+          <span class="tag tag-green" style="font-size:10px">Santé</span>
+          <span class="tag tag-teal" style="font-size:10px">Actif</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2)">Étape 7/7 · 3 jalons · Semaine 4 en cours</div>
+      </div>
+      <div style="text-align:right;min-width:80px">
+        <div style="font-size:14px;font-weight:600;color:var(--green)">40%</div>
+        <div class="progress-track"><div class="progress-fill" style="width:40%;background:var(--green)"></div></div>
+        <div style="font-size:10px;color:var(--text2);margin-top:3px">Juil. 2026</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+</div>
+
+<script>
+function nav(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('sc-'+id).classList.add('active');
+  const navMap={dashboard:0,projects:1,tree:2,today:3,wizard:4,habits:5};
+  const items=document.querySelectorAll('.nav-item');
+  if(navMap[id]!==undefined)items[navMap[id]].classList.add('active');
+  if(id==='tree')setTimeout(drawTree,50);
+  if(id==='dashboard')setTimeout(drawSpark,50);
+  if(id==='today'||id==='habits')setTimeout(()=>{drawDonut();drawHabitChart();drawWeekDots()},50);
+}
+
+function toggleAction(id){
+  const row=document.getElementById(id);
+  const box=row.querySelector('.check-box');
+  const txt=row.querySelector('div[style*="font-size:13px"]');
+  const done=box.classList.contains('done');
+  if(done){box.classList.remove('done');if(txt)txt.style.textDecoration='none';if(txt)txt.style.color=''}
+  else{box.classList.add('done');if(txt)txt.style.textDecoration='line-through';if(txt)txt.style.color='var(--text2)'}
+}
+
+function toggleHabit(id){
+  const hc=document.getElementById('hc'+id.slice(1));
+  hc.classList.toggle('done');
+}
+
+function drawSpark(){
+  const c=document.getElementById('sparkChart');if(!c)return;
+  const ctx=c.getContext('2d');
+  c.width=c.offsetWidth*2;c.height=120;ctx.scale(2,2);
+  const w=c.offsetWidth/2,h=60;
+  const data=[58,65,72,68,78,82,75];
+  const labels=['L','M','M','J','V','S','D'];
+  const max=90,min=40,pad=8;
+  const grd=ctx.createLinearGradient(0,0,0,h);
+  grd.addColorStop(0,'rgba(196,154,60,0.25)');grd.addColorStop(1,'rgba(196,154,60,0)');
+  const pts=data.map((v,i)=>({x:pad+(i/(data.length-1))*(w-pad*2),y:pad+(1-(v-min)/(max-min))*(h-pad*2-10)}));
+  ctx.beginPath();ctx.moveTo(pts[0].x,h);
+  pts.forEach(p=>ctx.lineTo(p.x,p.y));
+  ctx.lineTo(pts[pts.length-1].x,h);ctx.closePath();ctx.fillStyle=grd;ctx.fill();
+  ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
+  pts.forEach(p=>ctx.lineTo(p.x,p.y));
+  ctx.strokeStyle='#C49A3C';ctx.lineWidth=1.5;ctx.stroke();
+  pts.forEach((p,i)=>{
+    ctx.beginPath();ctx.arc(p.x,p.y,3,0,Math.PI*2);
+    ctx.fillStyle=i===5?'#C49A3C':'#1C1B18';ctx.fill();
+    ctx.strokeStyle='#C49A3C';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.fillStyle='#4A4845';ctx.font='9px system-ui';ctx.textAlign='center';
+    ctx.fillText(labels[i],p.x,h-1);
+    if(i===5){ctx.fillStyle='#C49A3C';ctx.font='bold 9px system-ui';ctx.fillText(data[i]+'%',p.x,p.y-5);}
+  });
+}
+
+function drawDonut(){
+  const c=document.getElementById('donutChart');if(!c)return;
+  const ctx=c.getContext('2d');
+  c.width=160;c.height=160;ctx.scale(2,2);
+  const cx=40,cy=40,r=32,lw=7;
+  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle='#2A2824';ctx.lineWidth=lw;ctx.stroke();
+  const pct=0.82;
+  ctx.beginPath();ctx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+Math.PI*2*pct);
+  ctx.strokeStyle='#C49A3C';ctx.lineWidth=lw;ctx.lineCap='round';ctx.stroke();
+}
+
+function drawWeekDots(){
+  const el=document.getElementById('weekDots');if(!el)return;
+  const scores=[65,70,74,76,78,80,82];
+  el.innerHTML=scores.map(s=>{
+    const color=s>75?'#5A9E6F':s>60?'#C49A3C':'#E07070';
+    return `<div title="${s}%" style="width:18px;height:18px;border-radius:50%;background:${color};opacity:.85;display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;font-weight:700">${s}</div>`;
+  }).join('');
+}
+
+function drawHabitChart(){
+  const c=document.getElementById('habitChart');if(!c)return;
+  const ctx=c.getContext('2d');
+  c.width=c.offsetWidth*2;c.height=240;ctx.scale(2,2);
+  const w=c.offsetWidth/2,h=120;
+  const data=Array.from({length:30},(_,i)=>50+Math.round(Math.sin(i/3)*15+Math.random()*10+i*0.8));
+  const max=100,min=30,pad=8;
+  const grd=ctx.createLinearGradient(0,0,0,h);
+  grd.addColorStop(0,'rgba(196,154,60,0.2)');grd.addColorStop(1,'rgba(196,154,60,0)');
+  const pts=data.map((v,i)=>({x:pad+(i/(data.length-1))*(w-pad*2),y:pad+(1-(v-min)/(max-min))*(h-pad*2-10)}));
+  ctx.beginPath();ctx.moveTo(pts[0].x,h);pts.forEach(p=>ctx.lineTo(p.x,p.y));ctx.lineTo(pts[pts.length-1].x,h);ctx.closePath();ctx.fillStyle=grd;ctx.fill();
+  ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);pts.forEach(p=>ctx.lineTo(p.x,p.y));ctx.strokeStyle='#C49A3C';ctx.lineWidth=1.5;ctx.stroke();
+  ctx.fillStyle='#4A4845';ctx.font='9px system-ui';ctx.textAlign='left';ctx.fillText('30 derniers jours',pad,h-1);
+}
+
+function drawTree(){
+  const c=document.getElementById('treeCanvas');if(!c)return;
+  const dpr=window.devicePixelRatio||1;
+  const W=c.offsetWidth,H=380;
+  c.width=W*dpr;c.height=H*dpr;
+  const ctx=c.getContext('2d');ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,W,H);
+  const cx=W/2,cy=H/2-20;
+  const domains=[
+    {name:'Foi',n:1,color:'#5B9BD4',angle:-Math.PI/2,dist:140},
+    {name:'Famille',n:0,color:'#E07B39',angle:-Math.PI/6,dist:140},
+    {name:'Finances',n:3,color:'#E07070',angle:Math.PI/6,dist:140},
+    {name:'Santé',n:2,color:'#5A9E6F',angle:Math.PI/2,dist:140},
+    {name:'Carrière',n:2,color:'#7B6FD4',angle:5*Math.PI/6,dist:140},
+    {name:'Éducation',n:1,color:'#2DA58A',angle:-5*Math.PI/6,dist:140},
+  ];
+  ctx.beginPath();ctx.arc(cx,cy,36,0,Math.PI*2);
+  ctx.fillStyle='rgba(196,154,60,0.12)';ctx.fill();
+  ctx.strokeStyle='rgba(196,154,60,0.5)';ctx.lineWidth=1.5;ctx.stroke();
+  ctx.fillStyle='#C49A3C';ctx.font='bold 13px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('Destinée',cx,cy-6);
+  ctx.font='10px system-ui';ctx.fillStyle='rgba(196,154,60,0.7)';ctx.fillText('But de vie',cx,cy+8);
+  domains.forEach(d=>{
+    const dx=cx+Math.cos(d.angle)*d.dist;
+    const dy=cy+Math.sin(d.angle)*d.dist;
+    ctx.beginPath();ctx.moveTo(cx+Math.cos(d.angle)*38,cy+Math.sin(d.angle)*38);
+    ctx.lineTo(dx-Math.cos(d.angle)*(26+d.n*4),dy-Math.sin(d.angle)*(26+d.n*4));
+    ctx.strokeStyle=d.n===0?'rgba(224,123,57,0.3)':d.n>=3?'rgba(224,112,112,0.4)':'rgba(255,255,255,0.12)';
+    ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.stroke();ctx.setLineDash([]);
+    const r=22+d.n*5;
+    ctx.beginPath();ctx.arc(dx,dy,r,0,Math.PI*2);
+    ctx.fillStyle=d.n===0?'rgba(224,123,57,0.15)':d.n>=3?'rgba(224,112,112,0.15)':`${d.color}22`;
+    ctx.fill();
+    ctx.strokeStyle=d.n===0?'#E07B39':d.n>=3?'#E07070':d.color;
+    ctx.lineWidth=d.n>=3||d.n===0?1.5:1;
+    ctx.stroke();
+    ctx.fillStyle=d.color;ctx.font=`bold ${Math.max(10,10+d.n)}px system-ui`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(d.name,dx,dy-3);
+    ctx.font='9px system-ui';ctx.fillStyle='rgba(255,255,255,0.5)';
+    ctx.fillText(d.n===0?'Desséché':d.n>=3?`${d.n} projets!`:`${d.n} projet${d.n>1?'s':''}`,dx,dy+8);
+  });
+  c.onclick=function(e){
+    const rect=c.getBoundingClientRect();
+    const mx=(e.clientX-rect.left),my=(e.clientY-rect.top);
+    domains.forEach(d=>{
+      const dx=cx+Math.cos(d.angle)*d.dist;
+      const dy=cy+Math.sin(d.angle)*d.dist;
+      const dist=Math.sqrt((mx-dx)**2+(my-dy)**2);
+      if(dist<32){
+        const tt=document.getElementById('tree-tooltip');
+        if(d.n===0)tt.innerHTML=`<span style="color:#E07B39">⚠ ${d.name} — Aucun projet actif. <span style="cursor:pointer;text-decoration:underline" onclick="nav('wizard')">Créer un projet</span></span>`;
+        else if(d.n>=3)tt.innerHTML=`<span style="color:#E07070">⚡ ${d.name} — ${d.n} projets actifs. Risque de dispersion.</span>`;
+        else tt.innerHTML=`<span style="color:#5A9E6F">✓ ${d.name} — ${d.n} projet${d.n>1?'s':''} actif${d.n>1?'s':''}. En bonne santé.</span>`;
+      }
+    });
+  };
+}
+
+drawSpark();
+</script>

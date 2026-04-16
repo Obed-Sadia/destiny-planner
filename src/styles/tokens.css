@@ -1,0 +1,176 @@
+/* DestinyPlanner — Design System Tokens v2.1 */
+/* Dark mode par défaut */
+
+:root {
+  /* ─── Fonds et surfaces ─────────────────────────────── */
+  --bg:        #0F0E0D;
+  --sidebar:   #141312;
+  --surface:   #1C1B18;
+  --surface-2: #242320;
+  --border:    #2A2824;
+  --border-2:  #353330;
+
+  /* ─── Texte ─────────────────────────────────────────── */
+  --text-1:    #F0EDE6;
+  --text-2:    #8A8780;
+  --text-3:    #4A4845;
+
+  /* ─── Or (accent principal) ─────────────────────────── */
+  --gold:      #C49A3C;
+  --gold-soft: #E8C96A;
+  --gold-pale: rgba(196, 154, 60, 0.12);
+  --gold-text: #8B6914;
+
+  /* ─── Couleurs sémantiques ──────────────────────────── */
+  --green:     #5A9E6F;
+  --amber:     #D4854A;
+  --coral:     #E07070;
+  --blue:      #5B9BD4;
+  --purple:    #7B6FD4;
+  --teal:      #2DA58A;
+
+  /* ─── Couleurs des 7 étapes ─────────────────────────── */
+  --step-1:    #7B6FD4;  /* Vision */
+  --step-2:    #5B9BD4;  /* S'arrêter */
+  --step-3:    #2DA58A;  /* Estimer / SWOT */
+  --step-4:    #D4854A;  /* Coût */
+  --step-5:    #5A9E6F;  /* Calculer */
+  --step-6:    #E07070;  /* Vérifier */
+  --step-7:    #C49A3C;  /* S'engager */
+
+  /* Fonds teintés des étapes */
+  --step-1-bg: rgba(123, 111, 212, 0.18);
+  --step-2-bg: rgba(91, 155, 212, 0.15);
+  --step-3-bg: rgba(45, 165, 138, 0.08);
+  --step-4-bg: rgba(212, 133, 74, 0.15);
+  --step-5-bg: rgba(90, 158, 111, 0.15);
+  --step-6-bg: rgba(224, 112, 112, 0.15);
+  --step-7-bg: rgba(196, 154, 60, 0.15);
+
+  /* ─── Santé des domaines (Arbre de la Destinée) ─────── */
+  --health-dry:       #E07B39;
+  --health-dry-bg:    rgba(224, 123, 57, 0.15);
+  --health-overload:  #E07070;
+  --health-overload-bg: rgba(224, 112, 112, 0.15);
+  --health-dormant:   #4A4845;
+  --health-dormant-bg: rgba(74, 72, 69, 0.2);
+
+  /* ─── Tags / Badges ─────────────────────────────────── */
+  --tag-purple-bg:   rgba(123, 111, 212, 0.18);
+  --tag-purple-text: #A89EE8;
+  --tag-teal-bg:     rgba(45, 165, 138, 0.15);
+  --tag-teal-text:   #5DCAA5;
+  --tag-amber-bg:    rgba(212, 133, 74, 0.15);
+  --tag-amber-text:  #E8A870;
+  --tag-green-bg:    rgba(90, 158, 111, 0.15);
+  --tag-green-text:  #7DC499;
+  --tag-coral-bg:    rgba(224, 112, 112, 0.15);
+  --tag-coral-text:  #E89090;
+  --tag-gold-bg:     rgba(196, 154, 60, 0.15);
+  --tag-gold-text:   #E8C96A;
+
+  /* ─── Typographie ───────────────────────────────────── */
+  --font-ui:       'Inter', sans-serif;
+  --font-editorial: 'Fraunces', serif;
+
+  --text-xs:   0.6875rem;  /* 11px */
+  --text-sm:   0.75rem;    /* 12px */
+  --text-base: 0.875rem;   /* 14px */
+  --text-md:   1rem;       /* 16px */
+  --text-lg:   1.125rem;   /* 18px */
+  --text-xl:   1.25rem;    /* 20px */
+  --text-2xl:  1.5rem;     /* 24px */
+  --text-3xl:  1.875rem;   /* 30px */
+  --text-4xl:  2.25rem;    /* 36px */
+
+  --weight-regular: 400;
+  --weight-medium:  500;
+  --weight-semibold: 600;
+  --weight-bold:    700;
+
+  --leading-tight:  1.2;
+  --leading-snug:   1.4;
+  --leading-normal: 1.6;
+
+  /* ─── Spacing ───────────────────────────────────────── */
+  --space-1:   0.25rem;   /* 4px */
+  --space-2:   0.5rem;    /* 8px */
+  --space-3:   0.75rem;   /* 12px */
+  --space-4:   1rem;      /* 16px */
+  --space-5:   1.25rem;   /* 20px */
+  --space-6:   1.5rem;    /* 24px */
+  --space-8:   2rem;      /* 32px */
+  --space-10:  2.5rem;    /* 40px */
+  --space-12:  3rem;      /* 48px */
+  --space-16:  4rem;      /* 64px */
+
+  /* ─── Border radius ─────────────────────────────────── */
+  --r-xs:   4px;
+  --r-sm:   6px;
+  --r-md:   8px;
+  --r-lg:   12px;
+  --r-xl:   16px;
+  --r-full: 9999px;
+
+  /* ─── Ombres ─────────────────────────────────────────── */
+  --shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md:  0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg:  0 8px 24px rgba(0, 0, 0, 0.6);
+  --shadow-gold: 0 0 0 1px var(--gold);
+
+  /* ─── Layout ─────────────────────────────────────────── */
+  --sidebar-width:    200px;
+  --bottom-nav-h:     64px;
+  --header-h:         56px;
+  --content-max:      960px;
+
+  /* ─── Transitions ────────────────────────────────────── */
+  --transition-fast:   100ms ease;
+  --transition-base:   150ms ease;
+  --transition-slow:   250ms ease;
+
+  /* ─── Time-blocking ──────────────────────────────────── */
+  --block-work:     var(--purple);
+  --block-spiritual: var(--gold);
+  --block-family:   var(--green);
+  --block-health:   var(--teal);
+  --block-rest:     var(--blue);
+  --block-free:     var(--surface-2);
+}
+
+/* ─── Mode clair ─────────────────────────────────────── */
+[data-theme="light"] {
+  /* Fonds et surfaces */
+  --bg:        #F8F6F2;
+  --sidebar:   #F0EDE6;
+  --surface:   #FFFFFF;
+  --surface-2: #F4F2EE;
+  --border:    #E0DDD6;
+  --border-2:  #D0CDC6;
+
+  /* Texte */
+  --text-1:    #1A1916;
+  --text-2:    #6A6764;
+  --text-3:    #9A9794;
+
+  /* Or */
+  --gold-pale: rgba(196, 154, 60, 0.08);
+  --gold-text: #7A5A0C;
+
+  /* Ombres (plus légères sur fond clair) */
+  --shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md:  0 4px 12px rgba(0, 0, 0, 0.10);
+  --shadow-lg:  0 8px 24px rgba(0, 0, 0, 0.14);
+
+  /* Tags — texte plus foncé pour lisibilité sur fond clair */
+  --tag-purple-text: #5A50A8;
+  --tag-teal-text:   #1A7A64;
+  --tag-amber-text:  #A05820;
+  --tag-green-text:  #2D7048;
+  --tag-coral-text:  #B84040;
+  --tag-gold-text:   #7A5A0C;
+
+  /* Santé domaines — dormant lisible sur fond clair */
+  --health-dormant:    #888580;
+  --health-dormant-bg: rgba(136, 133, 128, 0.12);
+}
