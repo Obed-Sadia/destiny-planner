@@ -4,6 +4,8 @@
 import { create } from 'zustand'
 import { db } from '../db/schema'
 import type { Milestone, MilestoneStatus } from '../types'
+import { pushToSupabase, deleteFromSupabase } from '../services/personalSyncService'
+import { useAuthStore } from './useAuthStore'
 
 interface MilestoneStore {
   milestones: Milestone[]
@@ -49,6 +51,8 @@ export const useMilestoneStore = create<MilestoneStore>((set, get) => ({
       }
       await db.milestone.add(milestone)
       set((state) => ({ milestones: [...state.milestones, milestone] }))
+      const userId = useAuthStore.getState().user?.id
+      if (userId) void pushToSupabase('milestone', milestone as unknown as Record<string, unknown>, userId)
       return milestone
     } catch (error) {
       console.error('useMilestoneStore.addMilestone', error)
@@ -61,9 +65,13 @@ export const useMilestoneStore = create<MilestoneStore>((set, get) => ({
       const now = new Date().toISOString()
       const update = { ...data, updated_at: now }
       await db.milestone.update(id, update)
-      set((state) => ({
-        milestones: state.milestones.map((m) => (m.id === id ? { ...m, ...update } : m)),
-      }))
+      const milestones = get().milestones.map((m) => (m.id === id ? { ...m, ...update } : m))
+      set({ milestones })
+      const userId = useAuthStore.getState().user?.id
+      if (userId) {
+        const updated = milestones.find((m) => m.id === id)
+        if (updated) void pushToSupabase('milestone', updated as unknown as Record<string, unknown>, userId)
+      }
     } catch (error) {
       console.error('useMilestoneStore.updateMilestone', error)
     }
@@ -80,6 +88,11 @@ export const useMilestoneStore = create<MilestoneStore>((set, get) => ({
       await db.milestone.update(id, update)
       const milestones = get().milestones.map((m) => (m.id === id ? { ...m, ...update } : m))
       set({ milestones })
+      const userId = useAuthStore.getState().user?.id
+      if (userId) {
+        const updated = milestones.find((m) => m.id === id)
+        if (updated) void pushToSupabase('milestone', updated as unknown as Record<string, unknown>, userId)
+      }
 
       const milestone = milestones.find((m) => m.id === id)
       if (milestone) {
@@ -98,6 +111,10 @@ export const useMilestoneStore = create<MilestoneStore>((set, get) => ({
         await db.milestone.delete(id)
       })
       set((state) => ({ milestones: state.milestones.filter((m) => m.id !== id) }))
+      const userId = useAuthStore.getState().user?.id
+      if (userId && milestone) {
+        void deleteFromSupabase('milestone', milestone as unknown as Record<string, unknown>, userId)
+      }
       if (milestone) {
         await recalculateProjectProgress(milestone.project_id)
       }

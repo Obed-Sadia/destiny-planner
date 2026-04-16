@@ -4,6 +4,8 @@
 import { create } from 'zustand'
 import { db } from '../db/schema'
 import type { Action } from '../types'
+import { pushToSupabase, deleteFromSupabase } from '../services/personalSyncService'
+import { useAuthStore } from './useAuthStore'
 
 interface ActionStore {
   actions: Action[]
@@ -48,6 +50,8 @@ export const useActionStore = create<ActionStore>((set, get) => ({
       }
       await db.action.add(action)
       set((state) => ({ actions: [...state.actions, action] }))
+      const userId = useAuthStore.getState().user?.id
+      if (userId) void pushToSupabase('action', action as unknown as Record<string, unknown>, userId)
       return action
     } catch (error) {
       console.error('useActionStore.addAction', error)
@@ -58,9 +62,13 @@ export const useActionStore = create<ActionStore>((set, get) => ({
   updateAction: async (id, data) => {
     try {
       await db.action.update(id, data)
-      set((state) => ({
-        actions: state.actions.map((a) => (a.id === id ? { ...a, ...data } : a)),
-      }))
+      const actions = get().actions.map((a) => (a.id === id ? { ...a, ...data } : a))
+      set({ actions })
+      const userId = useAuthStore.getState().user?.id
+      if (userId) {
+        const updated = actions.find((a) => a.id === id)
+        if (updated) void pushToSupabase('action', updated as unknown as Record<string, unknown>, userId)
+      }
     } catch (error) {
       console.error('useActionStore.updateAction', error)
     }
@@ -76,9 +84,13 @@ export const useActionStore = create<ActionStore>((set, get) => ({
         done_at: !action.done ? now : null,
       }
       await db.action.update(id, update)
-      set((state) => ({
-        actions: state.actions.map((a) => (a.id === id ? { ...a, ...update } : a)),
-      }))
+      const actions = get().actions.map((a) => (a.id === id ? { ...a, ...update } : a))
+      set({ actions })
+      const userId = useAuthStore.getState().user?.id
+      if (userId) {
+        const updated = actions.find((a) => a.id === id)
+        if (updated) void pushToSupabase('action', updated as unknown as Record<string, unknown>, userId)
+      }
     } catch (error) {
       console.error('useActionStore.toggleDone', error)
     }
@@ -86,8 +98,11 @@ export const useActionStore = create<ActionStore>((set, get) => ({
 
   deleteAction: async (id) => {
     try {
+      const toDelete = get().actions.find((a) => a.id === id)
       await db.action.delete(id)
       set((state) => ({ actions: state.actions.filter((a) => a.id !== id) }))
+      const userId = useAuthStore.getState().user?.id
+      if (userId && toDelete) void deleteFromSupabase('action', toDelete as unknown as Record<string, unknown>, userId)
     } catch (error) {
       console.error('useActionStore.deleteAction', error)
     }

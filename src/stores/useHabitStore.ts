@@ -4,6 +4,8 @@
 import { create } from 'zustand'
 import { db } from '../db/schema'
 import type { Habit, HabitCheck } from '../types'
+import { pushToSupabase, deleteFromSupabase } from '../services/personalSyncService'
+import { useAuthStore } from './useAuthStore'
 
 interface HabitStore {
   habits: Habit[]
@@ -59,6 +61,8 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
       await db.habit.add(habit)
       const habits = [...get().habits, habit]
       set({ habits, weightsValid: computeWeightsValid(habits) })
+      const userId = useAuthStore.getState().user?.id
+      if (userId) void pushToSupabase('habit', habit as unknown as Record<string, unknown>, userId)
     } catch (error) {
       console.error('useHabitStore.addHabit', error)
     }
@@ -69,6 +73,11 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
       await db.habit.update(id, data)
       const habits = get().habits.map((h) => (h.id === id ? { ...h, ...data } : h))
       set({ habits, weightsValid: computeWeightsValid(habits) })
+      const userId = useAuthStore.getState().user?.id
+      if (userId) {
+        const updated = habits.find((h) => h.id === id)
+        if (updated) void pushToSupabase('habit', updated as unknown as Record<string, unknown>, userId)
+      }
     } catch (error) {
       console.error('useHabitStore.updateHabit', error)
     }
@@ -76,12 +85,15 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
 
   deleteHabit: async (id) => {
     try {
+      const toDelete = get().habits.find((h) => h.id === id)
       await db.transaction('rw', [db.habit, db.habit_check], async () => {
         await db.habit_check.where('habit_id').equals(id).delete()
         await db.habit.delete(id)
       })
       const habits = get().habits.filter((h) => h.id !== id)
       set({ habits, weightsValid: computeWeightsValid(habits) })
+      const userId = useAuthStore.getState().user?.id
+      if (userId && toDelete) void deleteFromSupabase('habit', toDelete as unknown as Record<string, unknown>, userId)
     } catch (error) {
       console.error('useHabitStore.deleteHabit', error)
     }
@@ -92,12 +104,14 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
       const checkId = `${habitId}_${date}`
       const existing = get().checks.find((c) => c.id === checkId)
 
+      const userId = useAuthStore.getState().user?.id
       if (existing) {
         const updated = { ...existing, done: !existing.done, checked_at: new Date().toISOString() }
         await db.habit_check.put(updated)
         set((state) => ({
           checks: state.checks.map((c) => (c.id === checkId ? updated : c)),
         }))
+        if (userId) void pushToSupabase('habit_check', updated as unknown as Record<string, unknown>, userId)
       } else {
         const check: HabitCheck = {
           id: checkId,
@@ -108,6 +122,7 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
         }
         await db.habit_check.add(check)
         set((state) => ({ checks: [...state.checks, check] }))
+        if (userId) void pushToSupabase('habit_check', check as unknown as Record<string, unknown>, userId)
       }
     } catch (error) {
       console.error('useHabitStore.toggleCheck', error)

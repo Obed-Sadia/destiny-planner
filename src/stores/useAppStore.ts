@@ -3,6 +3,8 @@
 import { create } from 'zustand'
 import { db } from '../db/schema'
 import type { AppPreferences } from '../types'
+import { pushToSupabase } from '../services/personalSyncService'
+import { useAuthStore } from './useAuthStore'
 
 function applyTheme(darkMode: boolean): void {
   if (darkMode) {
@@ -55,6 +57,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
       }
       await db.app_preferences.put(updated)
       set({ preferences: updated })
+      const userId = useAuthStore.getState().user?.id
+      if (userId) void pushToSupabase('app_preferences', updated as unknown as Record<string, unknown>, userId)
     } catch (error) {
       console.error('useAppStore.updatePreferences', error)
     }

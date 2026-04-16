@@ -5,6 +5,8 @@ import { create } from 'zustand'
 import { db } from '../db/schema'
 import type { TimeBlock } from '../types'
 import { validateTimeBlock } from '../services/timeBlockValidator'
+import { pushToSupabase, deleteFromSupabase } from '../services/personalSyncService'
+import { useAuthStore } from './useAuthStore'
 
 interface TimeBlockStore {
   blocks: TimeBlock[]
@@ -65,6 +67,8 @@ export const useTimeBlockStore = create<TimeBlockStore>((set, get) => ({
         a.start_time.localeCompare(b.start_time),
       )
       set({ blocks: blocks_updated, validationError: null })
+      const userId = useAuthStore.getState().user?.id
+      if (userId) void pushToSupabase('time_block', block as unknown as Record<string, unknown>, userId)
       return block
     } catch (error) {
       console.error('useTimeBlockStore.addBlock', error)
@@ -77,11 +81,15 @@ export const useTimeBlockStore = create<TimeBlockStore>((set, get) => ({
       const now = new Date().toISOString()
       const update = { ...data, updated_at: now }
       await db.time_block.update(id, update)
-      set((state) => ({
-        blocks: state.blocks
-          .map((b) => (b.id === id ? { ...b, ...update } : b))
-          .sort((a, b) => a.start_time.localeCompare(b.start_time)),
-      }))
+      const blocks = get().blocks
+        .map((b) => (b.id === id ? { ...b, ...update } : b))
+        .sort((a, b) => a.start_time.localeCompare(b.start_time))
+      set({ blocks })
+      const userId = useAuthStore.getState().user?.id
+      if (userId) {
+        const updated = blocks.find((b) => b.id === id)
+        if (updated) void pushToSupabase('time_block', updated as unknown as Record<string, unknown>, userId)
+      }
     } catch (error) {
       console.error('useTimeBlockStore.updateBlock', error)
     }
@@ -94,9 +102,12 @@ export const useTimeBlockStore = create<TimeBlockStore>((set, get) => ({
       const now = new Date().toISOString()
       const update = { done: !block.done, updated_at: now }
       await db.time_block.update(id, update)
+      const updated = { ...block, ...update }
       set((state) => ({
-        blocks: state.blocks.map((b) => (b.id === id ? { ...b, ...update } : b)),
+        blocks: state.blocks.map((b) => (b.id === id ? updated : b)),
       }))
+      const userId = useAuthStore.getState().user?.id
+      if (userId) void pushToSupabase('time_block', updated as unknown as Record<string, unknown>, userId)
     } catch (error) {
       console.error('useTimeBlockStore.toggleDone', error)
     }
@@ -104,8 +115,11 @@ export const useTimeBlockStore = create<TimeBlockStore>((set, get) => ({
 
   deleteBlock: async (id) => {
     try {
+      const toDelete = get().blocks.find((b) => b.id === id)
       await db.time_block.delete(id)
       set((state) => ({ blocks: state.blocks.filter((b) => b.id !== id) }))
+      const userId = useAuthStore.getState().user?.id
+      if (userId && toDelete) void deleteFromSupabase('time_block', toDelete as unknown as Record<string, unknown>, userId)
     } catch (error) {
       console.error('useTimeBlockStore.deleteBlock', error)
     }

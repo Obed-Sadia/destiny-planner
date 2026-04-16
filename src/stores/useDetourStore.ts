@@ -4,6 +4,8 @@
 import { create } from 'zustand'
 import { db } from '../db/schema'
 import type { Detour } from '../types'
+import { pushToSupabase, deleteFromSupabase } from '../services/personalSyncService'
+import { useAuthStore } from './useAuthStore'
 
 interface DetourStore {
   detours: Detour[]
@@ -25,7 +27,7 @@ async function checkIsSystemic(obstacle: string, excludeId?: string): Promise<bo
   return uniqueProjects.size >= 2 // 2 existants + le nouveau = 3 au total
 }
 
-export const useDetourStore = create<DetourStore>((set) => ({
+export const useDetourStore = create<DetourStore>((set, get) => ({
   detours: [],
 
   load: async (projectId) => {
@@ -53,6 +55,8 @@ export const useDetourStore = create<DetourStore>((set) => ({
       }
       await db.detour.add(detour)
       set((state) => ({ detours: [detour, ...state.detours] }))
+      const userId = useAuthStore.getState().user?.id
+      if (userId) void pushToSupabase('detour', detour as unknown as Record<string, unknown>, userId)
       return detour
     } catch (error) {
       console.error('useDetourStore.addDetour', error)
@@ -63,9 +67,13 @@ export const useDetourStore = create<DetourStore>((set) => ({
   updateDetour: async (id, data) => {
     try {
       await db.detour.update(id, data)
-      set((state) => ({
-        detours: state.detours.map((d) => (d.id === id ? { ...d, ...data } : d)),
-      }))
+      const detours = get().detours.map((d) => (d.id === id ? { ...d, ...data } : d))
+      set({ detours })
+      const userId = useAuthStore.getState().user?.id
+      if (userId) {
+        const updated = detours.find((d) => d.id === id)
+        if (updated) void pushToSupabase('detour', updated as unknown as Record<string, unknown>, userId)
+      }
     } catch (error) {
       console.error('useDetourStore.updateDetour', error)
     }
@@ -76,9 +84,13 @@ export const useDetourStore = create<DetourStore>((set) => ({
       const now = new Date().toISOString()
       const update = { resolved: true, resolved_at: now }
       await db.detour.update(id, update)
-      set((state) => ({
-        detours: state.detours.map((d) => (d.id === id ? { ...d, ...update } : d)),
-      }))
+      const detours = get().detours.map((d) => (d.id === id ? { ...d, ...update } : d))
+      set({ detours })
+      const userId = useAuthStore.getState().user?.id
+      if (userId) {
+        const updated = detours.find((d) => d.id === id)
+        if (updated) void pushToSupabase('detour', updated as unknown as Record<string, unknown>, userId)
+      }
     } catch (error) {
       console.error('useDetourStore.resolveDetour', error)
     }
@@ -86,8 +98,11 @@ export const useDetourStore = create<DetourStore>((set) => ({
 
   deleteDetour: async (id) => {
     try {
+      const toDelete = get().detours.find((d) => d.id === id)
       await db.detour.delete(id)
       set((state) => ({ detours: state.detours.filter((d) => d.id !== id) }))
+      const userId = useAuthStore.getState().user?.id
+      if (userId && toDelete) void deleteFromSupabase('detour', toDelete as unknown as Record<string, unknown>, userId)
     } catch (error) {
       console.error('useDetourStore.deleteDetour', error)
     }

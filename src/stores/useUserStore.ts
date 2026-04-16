@@ -6,6 +6,8 @@ import { db } from '../db/schema'
 import type { UserProfile, UserGrade } from '../types'
 import { computeUserStats } from '../services/userStats'
 import { computeStreakUpdate } from '../services/score'
+import { pushToSupabase } from '../services/personalSyncService'
+import { useAuthStore } from './useAuthStore'
 
 // Nombre de jours depuis une date YYYY-MM-DD (0 si null)
 function daysSince(dateStr: string | null): number {
@@ -45,6 +47,11 @@ interface UserStore {
   upgradeEngagementLevel: (level: 2 | 3) => Promise<void>
 }
 
+function pushProfile(profile: UserProfile): void {
+  const userId = useAuthStore.getState().user?.id
+  if (userId) void pushToSupabase('user_profile', profile as unknown as Record<string, unknown>, userId)
+}
+
 export const useUserStore = create<UserStore>((set, get) => ({
   profile: null,
 
@@ -64,6 +71,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
         }
         await db.user_profile.put(downgraded)
         set({ profile: downgraded })
+        pushProfile(downgraded)
       } else {
         set({ profile })
       }
@@ -80,6 +88,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
       const updated: UserProfile = { ...current, ...data, updated_at: now }
       await db.user_profile.put(updated)
       set({ profile: updated })
+      pushProfile(updated)
     } catch (error) {
       console.error('useUserStore.updateProfile', error)
     }
@@ -94,6 +103,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
       const updated: UserProfile = { ...current, ...stats, updated_at: now }
       await db.user_profile.put(updated)
       set({ profile: updated })
+      pushProfile(updated)
     } catch (error) {
       console.error('useUserStore.recalculateStats', error)
     }
@@ -109,6 +119,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
       const updated: UserProfile = { ...current, grade, updated_at: now }
       await db.user_profile.put(updated)
       set({ profile: updated })
+      pushProfile(updated)
     } catch (error) {
       console.error('useUserStore.checkAndUpdateGrade', error)
     }
@@ -124,6 +135,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
       const updated: UserProfile = { ...current, engagement_level: level, updated_at: now }
       await db.user_profile.put(updated)
       set({ profile: updated })
+      pushProfile(updated)
     } catch (error) {
       console.error('useUserStore.upgradeEngagementLevel', error)
     }
@@ -154,6 +166,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
       }
       await db.user_profile.put(updated)
       set({ profile: updated })
+      pushProfile(updated)
 
       await get().checkAndUpdateGrade()
     } catch (error) {

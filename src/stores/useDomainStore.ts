@@ -4,6 +4,8 @@ import { create } from 'zustand'
 import { db } from '../db/schema'
 import type { Domain, DomainWithHealth, Project, PersonalBusinessLink } from '../types'
 import { computeAllDomainsHealth } from '../services/domainHealth'
+import { pushToSupabase, deleteFromSupabase } from '../services/personalSyncService'
+import { useAuthStore } from './useAuthStore'
 
 interface DomainStore {
   domains: Domain[]
@@ -40,6 +42,10 @@ export const useDomainStore = create<DomainStore>((set, get) => ({
       await db.domain.add(domain)
       const domains = [...get().domains, domain].sort((a, b) => a.sort_order - b.sort_order)
       set({ domains })
+      const userId = useAuthStore.getState().user?.id
+      if (userId) {
+        void pushToSupabase('domain', domain as unknown as Record<string, unknown>, userId)
+      }
     } catch (error) {
       console.error('useDomainStore.addDomain', error)
     }
@@ -50,6 +56,11 @@ export const useDomainStore = create<DomainStore>((set, get) => ({
       await db.domain.update(id, data)
       const domains = get().domains.map((d) => (d.id === id ? { ...d, ...data } : d))
       set({ domains })
+      const userId = useAuthStore.getState().user?.id
+      if (userId) {
+        const updated = domains.find((d) => d.id === id)
+        if (updated) void pushToSupabase('domain', updated as unknown as Record<string, unknown>, userId)
+      }
     } catch (error) {
       console.error('useDomainStore.updateDomain', error)
     }
@@ -57,9 +68,14 @@ export const useDomainStore = create<DomainStore>((set, get) => ({
 
   deleteDomain: async (id) => {
     try {
+      const toDelete = get().domains.find((d) => d.id === id)
       await db.domain.delete(id)
       const domains = get().domains.filter((d) => d.id !== id)
       set({ domains })
+      const userId = useAuthStore.getState().user?.id
+      if (userId && toDelete) {
+        void deleteFromSupabase('domain', toDelete as unknown as Record<string, unknown>, userId)
+      }
     } catch (error) {
       console.error('useDomainStore.deleteDomain', error)
     }

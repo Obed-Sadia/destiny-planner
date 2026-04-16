@@ -3,6 +3,8 @@
 import { create } from 'zustand'
 import { db } from '../db/schema'
 import type { Goal } from '../types'
+import { pushToSupabase } from '../services/personalSyncService'
+import { useAuthStore } from './useAuthStore'
 
 interface GoalStore {
   goal: Goal | null
@@ -34,6 +36,10 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
       }
       await db.goal.put(goal)
       set({ goal })
+      const userId = useAuthStore.getState().user?.id
+      if (userId) {
+        void pushToSupabase('goal', goal as unknown as Record<string, unknown>, userId)
+      }
     } catch (error) {
       console.error('useGoalStore.saveGoal', error)
     }

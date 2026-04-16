@@ -8,6 +8,7 @@ import { db } from '@/db/schema'
 import { runSeeds } from '@/db/seeds'
 import { useAuthStore } from '@/stores/useAuthStore'
 
+const Login                 = lazy(() => import('@/pages/Login'))
 const Onboarding            = lazy(() => import('@/pages/Onboarding'))
 const Dashboard             = lazy(() => import('@/pages/Dashboard'))
 const Goal                  = lazy(() => import('@/pages/Goal'))
@@ -26,17 +27,23 @@ const CommunityTemplates    = lazy(() => import('@/pages/CommunityTemplates'))
 const InviteAccept          = lazy(() => import('@/pages/InviteAccept'))
 const Analytics             = lazy(() => import('@/pages/Analytics'))
 
-// Redirige vers /onboarding ou /dashboard selon l'état du profil
+// Redirige selon l'état d'auth puis d'onboarding
 function RootRedirect(): JSX.Element {
+  const { user, loading: authLoading } = useAuthStore()
   const [target, setTarget] = useState<string | null>(null)
 
   useEffect(() => {
+    if (authLoading) return
+    if (!user) {
+      setTarget('/login')
+      return
+    }
     db.user_profile.get('singleton')
       .then((profile) => {
         setTarget(profile?.onboarding_done ? '/dashboard' : '/onboarding')
       })
       .catch(() => setTarget('/onboarding'))
-  }, [])
+  }, [user, authLoading])
 
   if (!target) return <></>
   return <Navigate to={target} replace />
@@ -70,6 +77,9 @@ export function App(): JSX.Element {
         <Routes>
           {/* Root — redirige selon l'état de l'onboarding */}
           <Route path="/" element={<RootRedirect />} />
+
+          {/* Login — hors Layout */}
+          <Route path="/login" element={<Login />} />
 
           {/* Onboarding — hors Layout */}
           <Route path="/onboarding" element={<Onboarding />} />

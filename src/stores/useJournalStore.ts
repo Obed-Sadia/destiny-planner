@@ -4,6 +4,8 @@
 import { create } from 'zustand'
 import { db } from '../db/schema'
 import type { JournalEntry } from '../types'
+import { pushToSupabase } from '../services/personalSyncService'
+import { useAuthStore } from './useAuthStore'
 
 interface JournalStore {
   entries: JournalEntry[]
@@ -74,6 +76,8 @@ export const useJournalStore = create<JournalStore>((set) => ({
           ? state.entries.map((e) => (e.id === date ? entry : e))
           : [entry, ...state.entries],
       }))
+      const userId = useAuthStore.getState().user?.id
+      if (userId) void pushToSupabase('journal_entry', entry as unknown as Record<string, unknown>, userId)
       return entry
     } catch (error) {
       console.error('useJournalStore.saveEntry', error)
@@ -83,7 +87,8 @@ export const useJournalStore = create<JournalStore>((set) => ({
 
   updateScore: async (date, score) => {
     try {
-      await db.journal_entry.update(date, { score_cache: score, updated_at: new Date().toISOString() })
+      const now = new Date().toISOString()
+      await db.journal_entry.update(date, { score_cache: score, updated_at: now })
       set((state) => ({
         todayEntry:
           state.todayEntry?.id === date
@@ -93,6 +98,11 @@ export const useJournalStore = create<JournalStore>((set) => ({
           e.id === date ? { ...e, score_cache: score } : e,
         ),
       }))
+      const userId = useAuthStore.getState().user?.id
+      if (userId) {
+        const updated = await db.journal_entry.get(date)
+        if (updated) void pushToSupabase('journal_entry', updated as unknown as Record<string, unknown>, userId)
+      }
     } catch (error) {
       console.error('useJournalStore.updateScore', error)
     }

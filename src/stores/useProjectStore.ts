@@ -5,6 +5,8 @@
 import { create } from 'zustand'
 import { db } from '../db/schema'
 import type { Project, ProjectStep, ProjectStatus, StepData } from '../types'
+import { pushToSupabase, deleteFromSupabase } from '../services/personalSyncService'
+import { useAuthStore } from './useAuthStore'
 
 interface ProjectStore {
   projects: Project[]
@@ -65,6 +67,15 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       })
 
       set((state) => ({ projects: [project, ...state.projects] }))
+
+      const userId = useAuthStore.getState().user?.id
+      if (userId) {
+        void pushToSupabase('project', project as unknown as Record<string, unknown>, userId)
+        for (const step of steps) {
+          void pushToSupabase('project_step', step as unknown as Record<string, unknown>, userId)
+        }
+      }
+
       return project
     } catch (error) {
       console.error('useProjectStore.addProject', error)
@@ -80,6 +91,11 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       set((state) => ({
         projects: state.projects.map((p) => (p.id === id ? { ...p, ...update } : p)),
       }))
+      const userId = useAuthStore.getState().user?.id
+      if (userId) {
+        const updated = get().projects.find((p) => p.id === id)
+        if (updated) void pushToSupabase('project', updated as unknown as Record<string, unknown>, userId)
+      }
     } catch (error) {
       console.error('useProjectStore.updateProject', error)
     }
@@ -106,6 +122,11 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       set((state) => ({
         steps: state.steps.map((s) => (s.id === stepId ? { ...s, data: merged } : s)),
       }))
+      const userId = useAuthStore.getState().user?.id
+      if (userId) {
+        const updatedStep = { ...step, data: merged }
+        void pushToSupabase('project_step', updatedStep as unknown as Record<string, unknown>, userId)
+      }
     } catch (error) {
       console.error('useProjectStore.saveStepData', error)
     }
@@ -149,6 +170,14 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         set((state) => ({
           projects: state.projects.map((p) => (p.id === projectId ? updated : p)),
         }))
+        const userId = useAuthStore.getState().user?.id
+        if (userId) {
+          void pushToSupabase('project', updated as unknown as Record<string, unknown>, userId)
+          const freshSteps = await db.project_step.where('project_id').equals(projectId).toArray()
+          for (const s of freshSteps) {
+            void pushToSupabase('project_step', s as unknown as Record<string, unknown>, userId)
+          }
+        }
       }
     } catch (error) {
       console.error('useProjectStore.completeStep', error)
@@ -167,6 +196,11 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       set((state) => ({
         projects: state.projects.map((p) => (p.id === id ? { ...p, ...update } : p)),
       }))
+      const userId = useAuthStore.getState().user?.id
+      if (userId) {
+        const updated = get().projects.find((p) => p.id === id)
+        if (updated) void pushToSupabase('project', updated as unknown as Record<string, unknown>, userId)
+      }
     } catch (error) {
       console.error('useProjectStore.setProjectStatus', error)
     }
@@ -174,6 +208,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
 
   deleteProject: async (id) => {
     try {
+      const toDelete = get().projects.find((p) => p.id === id)
       await db.transaction('rw', [db.project, db.project_step, db.milestone, db.action], async () => {
         await db.project_step.where('project_id').equals(id).delete()
         const milestones = await db.milestone.where('project_id').equals(id).toArray()
@@ -184,6 +219,10 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         await db.project.delete(id)
       })
       set((state) => ({ projects: state.projects.filter((p) => p.id !== id) }))
+      const userId = useAuthStore.getState().user?.id
+      if (userId && toDelete) {
+        void deleteFromSupabase('project', toDelete as unknown as Record<string, unknown>, userId)
+      }
     } catch (error) {
       console.error('useProjectStore.deleteProject', error)
     }
