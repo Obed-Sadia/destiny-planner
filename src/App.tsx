@@ -4,6 +4,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Layout } from '@/components/shared/Layout'
+import { AssistantWidget } from '@/components/shared/AssistantWidget'
 import { db } from '@/db/schema'
 import { runSeeds } from '@/db/seeds'
 import { useAuthStore } from '@/stores/useAuthStore'
@@ -112,6 +113,7 @@ export function App(): JSX.Element {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
+      <AssistantWidget />
     </BrowserRouter>
   )
 }

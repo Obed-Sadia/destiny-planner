@@ -323,3 +323,33 @@ export interface DomainWithHealth extends Domain {
   health_status: DomainHealthStatus
   active_projects_count: number
 }
+
+// ─── Assistant IA ─────────────────────────────────────────────
+
+export type AIActionType =
+  | 'add_milestone'
+  | 'add_action'
+  | 'add_time_block'
+  | 'add_domain'
+  | 'add_detour'
+  | 'add_habit'
+  | 'none'
+
+export interface AIAction {
+  type: AIActionType
+  params: Record<string, unknown>
+}
+
+export interface AIActionResult {
+  type: AIActionType
+  success: boolean
+  label: string
+}
+
+export interface AssistantMessage {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  actionResult?: AIActionResult
+  timestamp: number
+}
